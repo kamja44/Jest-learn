@@ -1,6 +1,24 @@
 import { obj } from "./mockFunction";
 
+// 테스트 라이프 사이클
+
+// 모든 테스트 실행 전(한 파일 테스트 실행 전 가장 먼저 실행됨)
+beforeAll(() => {
+  console.log("이 파일에 준비사항 실행");
+});
+// 매 테스트 실행 전
+beforeEach(() => {
+  // 테스트 간의 공통사항을 추출할 때 사용(매번 변수 초기화 등)
+  console.log("각 테스트 전에 실행");
+});
+// 모든 테스트 실행 후
+afterAll(() => {
+  // beforeAll에서 설정한 것들을 정리할 때 사용(DB 커넥션 끊기, 서버 종료 등)
+  console.log("모든 테스트가 끝난 후");
+});
+// 매 테스트 실행 후
 afterEach(() => {
+  console.log("각 테스트가 끝난 후");
   jest.restoreAllMocks();
 });
 
