@@ -35,7 +35,7 @@ test("obj.minus에 스파이를 심고 리턴값을 변경 ", () => {
 // mockImplementationOnce뒤에 mockImplementation을 붙여서 이후 계속 실행할 함수 지정이 가능하다.
 test("mockImplementationOnce을 이용하여 한 번만 실행", () => {
   // 첫 번째 실행일 경우 (a, b) => a + b 함수가 실행되고 두 번쨰 실행일 경우 () => 5가 실행됨, 세 번째 실행일 경우 다시 원래 함수 호출(obj.minus 호출)
-  jest
+  const spyFn = jest
     .spyOn(obj, "minus")
     .mockImplementationOnce((a, b) => a + b)
     .mockImplementationOnce(() => 5);
@@ -47,6 +47,10 @@ test("mockImplementationOnce을 이용하여 한 번만 실행", () => {
   expect(result1).toBe(3);
   expect(result2).toBe(5);
   expect(result3).toBe(-1);
+
+  spyFn.mockClear(); // Times, With 초기화
+  spyFn.mockReset(); // mockClear + mockImplementation(() => {})
+  spyFn.mockRestore(); // 전부 초기화
 });
 
 test("mock을 이용하여 return값만 변경", () => {
