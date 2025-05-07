@@ -29,13 +29,40 @@ describe("beforeEach/afterEach 적용", () => {
     //   expect(result).toBe(-1);
   });
 });
-test("obj.minus 함수가 1번 호출되었다.(spy 삽입)", () => {
+// skip => 해당 테스트 스킵(describe도 skip 가능) [앞에 x를 붙여서 표현도 가능함 xtest, xit => 둘다 스킵]
+test.skip("obj.minus 함수가 1번 호출되었다.(spy 삽입)", () => {
   jest.spyOn(obj, "minus");
   const result = obj.minus(1, 2);
   console.log(obj.minus);
   expect(obj.minus).toHaveBeenCalledTimes(1);
   expect(result).toBe(-1);
 });
+xtest("obj.minus 함수가 1번 호출되었다.(spy 삽입)", () => {
+  jest.spyOn(obj, "minus");
+  const result = obj.minus(1, 2);
+  console.log(obj.minus);
+  expect(obj.minus).toHaveBeenCalledTimes(1);
+  expect(result).toBe(-1);
+});
+
+xit("obj.minus 함수가 1번 호출되었다.(spy 삽입)", () => {
+  jest.spyOn(obj, "minus");
+  const result = obj.minus(1, 2);
+  console.log(obj.minus);
+  expect(obj.minus).toHaveBeenCalledTimes(1);
+  expect(result).toBe(-1);
+});
+
+// it => test와 동일함(영어권은 it을 많이 사용하고 비영어권은 test를 많이 사용함)
+it("obj.minus 함수가 1번 호출되었다.(spy 삽입)", () => {
+  jest.spyOn(obj, "minus");
+  const result = obj.minus(1, 2);
+  console.log(obj.minus);
+  expect(obj.minus).toHaveBeenCalledTimes(1);
+  expect(result).toBe(-1);
+});
+
+test.todo("추후 생성할 테스트");
 
 // spy를 심되 실행은 안되게 하고 싶을 때(함수 호출 여부만 궁금할 때)
 test("obj.minus에 스파이를 심되, 실행은 안되게 ", () => {
