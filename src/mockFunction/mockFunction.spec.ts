@@ -1,27 +1,34 @@
 import { obj } from "./mockFunction";
 
-// 테스트 라이프 사이클
-
-// 모든 테스트 실행 전(한 파일 테스트 실행 전 가장 먼저 실행됨)
-beforeAll(() => {
-  console.log("이 파일에 준비사항 실행");
-});
-// 매 테스트 실행 전
-beforeEach(() => {
-  // 테스트 간의 공통사항을 추출할 때 사용(매번 변수 초기화 등)
-  console.log("각 테스트 전에 실행");
-});
-// 모든 테스트 실행 후
-afterAll(() => {
-  // beforeAll에서 설정한 것들을 정리할 때 사용(DB 커넥션 끊기, 서버 종료 등)
-  console.log("모든 테스트가 끝난 후");
-});
-// 매 테스트 실행 후
 afterEach(() => {
-  console.log("각 테스트가 끝난 후");
   jest.restoreAllMocks();
 });
+// describe안에 테스트 라이프 사이클을 적용하면 해당 스코프 안에만 적용됨
+describe("beforeEach/afterEach 적용", () => {
+  beforeEach(() => {
+    console.log("각 테스트 전 실행");
+  });
+  afterEach(() => {
+    console.log("각 테스트 후 실행행");
+    jest.restoreAllMocks();
+  });
+  test("obj.minus 함수가 1번 호출되었다.(spy 삽입)", () => {
+    jest.spyOn(obj, "minus");
+    const result = obj.minus(1, 2);
+    console.log(obj.minus);
+    expect(obj.minus).toHaveBeenCalledTimes(1);
+    expect(result).toBe(-1);
+  });
 
+  // spy를 심되 실행은 안되게 하고 싶을 때(함수 호출 여부만 궁금할 때)
+  test("obj.minus에 스파이를 심되, 실행은 안되게 ", () => {
+    jest.spyOn(obj, "minus").mockImplementation();
+    const result = obj.minus(1, 2);
+    console.log(obj.minus);
+    expect(obj.minus).toHaveBeenCalledTimes(1);
+    //   expect(result).toBe(-1);
+  });
+});
 test("obj.minus 함수가 1번 호출되었다.(spy 삽입)", () => {
   jest.spyOn(obj, "minus");
   const result = obj.minus(1, 2);
