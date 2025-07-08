@@ -5,4 +5,5 @@ module.exports = {
     "^.+.tsx?$": ["ts-jest", {}],
   },
   setupFilesAfterEnv: ["jest-extended/all"],
+  testMatch: ["<rootDir>/src/after/**/*.test.ts"],
 };
