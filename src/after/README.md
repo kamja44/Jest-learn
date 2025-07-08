@@ -123,3 +123,129 @@ test("toMatchObject", () => {
 | **`toMatchObject`** | 객체 | 객체가 특정 **속성들의 집합**을 포함하는지 확인합니다. (부분 집합) |
 
 테스트의 목적에 맞는 정확한 Matcher를 사용하면 더 안정적이고 의미 있는 테스트 코드를 작성할 수 있습니다.
+
+---
+
+## Mocking: `jest.fn()`과 `jest.spyOn()`으로 의존성 제어하기
+
+테스트를 작성할 때, 테스트 대상이 의존하는 다른 함수나 모듈의 동작을 제어해야 하는 경우가 많습니다. Jest는 `jest.fn()`과 `jest.spyOn()`이라는 강력한 모의(Mock) 함수 기능을 제공하여 이를 가능하게 합니다.
+
+### 4. `jest.fn()` - 순수한 가짜 함수 만들기
+
+`jest.fn()`은 아무런 구현도 가지지 않는 가장 기본적인 모의 함수를 생성합니다. 이 함수는 호출되었는지, 어떤 인수로 호출되었는지 등을 추적할 수 있는 특별한 속성(`.mock`)을 가지고 있습니다.
+
+### 5. `jest.spyOn()` - 기존 함수의 동작 감시 및 조작
+
+`jest.spyOn(object, methodName)`은 이미 존재하는 객체의 메서드를 "감시(spy)"하는 역할을 합니다. 기존 구현을 그대로 둔 채로 호출 여부만 추적하거나, `mockImplementation`, `mockReturnValue` 등을 사용해 일시적으로 동작을 변경할 수 있습니다.
+
+**테스트 대상 코드 (`src/Before/mockFunction/mockFunction.ts`)**
+```typescript
+export const obj = {
+  minus(x: number, y: number) {
+    return x - y;
+  },
+};
+```
+
+**사용 예제 (`src/Before/mockFunction/mockFunction.spec.ts`)**
+
+**1) 단순 호출 추적**
+```typescript
+test("obj.minus 함수가 1번 호출되었다.(spy 삽입)", () => {
+  jest.spyOn(obj, "minus");
+  const result = obj.minus(1, 2);
+  expect(obj.minus).toHaveBeenCalledTimes(1);
+  expect(result).toBe(-1); // 원래 함수가 그대로 실행됨
+});
+```
+
+**2) 함수 구현 변경 (`mockImplementation`)**
+```typescript
+test("obj.minus에 스파이를 심고 리턴값을 변경", () => {
+  jest.spyOn(obj, "minus").mockImplementation(() => 5);
+  const result = obj.minus(1, 2);
+  expect(result).toBe(5); // 구현이 변경되어 5를 반환
+});
+```
+
+**3) 반환 값만 변경 (`mockReturnValue`)**
+```typescript
+test("mock을 이용하여 return값만 변경", () => {
+  jest.spyOn(obj, "minus").mockReturnValue(5);
+  const result = obj.minus(1, 2);
+  expect(result).toBe(5);
+});
+```
+
+**4) 한 번만 동작 변경 (`...Once`)**
+`mockImplementationOnce`와 `mockReturnValueOnce`를 사용하면 호출 순서에 따라 다른 동작을 지정할 수 있습니다.
+```typescript
+test("mockReturnValueOnce 사용 예제", () => {
+  jest
+    .spyOn(obj, "minus")
+    .mockReturnValueOnce(5) // 첫 번째 호출
+    .mockReturnValueOnce(8); // 두 번째 호출
+
+  const result1 = obj.minus(1, 2);
+  const result2 = obj.minus(1, 2);
+  const result3 = obj.minus(1, 2); // 세 번째는 설정이 없으므로 원래 함수 실행
+
+  expect(result1).toBe(5);
+  expect(result2).toBe(8);
+  expect(result3).toBe(-1);
+});
+```
+
+---
+
+### 6. Mock 함수 호출 검증
+
+`jest.fn()`이나 `jest.spyOn()`으로 만든 모의 함수는 그 자체로도 유용하지만, 진짜 강력함은 호출 관련 Matcher와 함께 사용할 때 드러납니다.
+
+-   **`.toHaveBeenCalled()`**: 모의 함수가 **한 번 이상** 호출되었는지 확인합니다.
+-   **`.toHaveBeenCalledTimes(number)`**: 모의 함수가 정확히 `number`만큼 호출되었는지 확인합니다.
+-   **`.toHaveBeenCalledWith(arg1, arg2, ...)`**: 모의 함수가 특정 인수들과 함께 **마지막으로** 호출되었는지 확인합니다.
+-   **`.toHaveBeenLastCalledWith(arg1, arg2, ...)`**: `.toHaveBeenCalledWith`와 동일합니다.
+-   **`.toHaveBeenNthCalledWith(nthCall, arg1, arg2, ...)`**: 모의 함수가 `nthCall`번째로 호출되었을 때 특정 인수들이 사용되었는지 확인합니다.
+
+**사용 예제**
+
+```typescript
+test("모의 함수 호출 검증하기", () => {
+  const mockFn = jest.fn();
+
+  mockFn("a");
+  mockFn("b", "c");
+
+  // 함수가 한 번 이상 호출되었는가?
+  expect(mockFn).toHaveBeenCalled();
+
+  // 함수가 정확히 2번 호출되었는가?
+  expect(mockFn).toHaveBeenCalledTimes(2);
+
+  // 마지막 호출의 인수가 "b", "c" 였는가?
+  expect(mockFn).toHaveBeenCalledWith("b", "c");
+  expect(mockFn).toHaveBeenLastCalledWith("b", "c");
+
+  // 첫 번째 호출의 인수가 "a" 였는가?
+  expect(mockFn).toHaveBeenNthCalledWith(1, "a");
+});
+```
+
+---
+
+### Mock 정리 및 복원
+
+테스트 격리를 위해 스파이를 사용한 후에는 반드시 정리해야 합니다. `afterEach` 내에서 `jest.restoreAllMocks()`를 호출하는 것이 가장 좋은 방법입니다.
+
+- **`mock.calls`**: 함수가 호출될 때 사용된 인수의 배열.
+- **`mockClear()`**: `mock.calls`와 `mock.instances`만 초기화.
+- **`mockReset()`**: `mockClear()`를 포함하여 모든 mock 구현을 초기화.
+- **`mockRestore()`**: `mockReset()`을 포함하여 원래 구현으로 완전히 복원 (`spyOn` 사용 시에만 유효).
+
+```typescript
+afterEach(() => {
+  // 모든 mock을 원래의 구현으로 복원합니다.
+  jest.restoreAllMocks();
+});
+```
